@@ -1,1 +1,1 @@
-# Pathan-Mohammad-Rashid-Project-Saadhna-Advanced-OCR-for-scanned-document
+# Project-Saadhna-Advanced-OCR-for-Scanned-Documents
