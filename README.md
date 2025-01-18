@@ -1,186 +1,184 @@
-# Project-Saadhna-Advanced-OCR-for-Scanned-Documents
+# Advanced OCR for Scanned Documents (Project Saadhna)
 
-# Reviving Urdu Heritage: Advanced OCR for Historical/Scanned Documents
+An advanced Optical Character Recognition (OCR) system built to extract Urdu text from scanned documents or images. The system uses a Vue.js frontend for user interaction and a Flask backend to process files via Google Cloud's Vision API. This project digitizes Urdu text for better access and preservation of its rich literary heritage.
 
-Unlock the power of advanced OCR technology to preserve the rich Urdu literary heritage. This guide provides a step-by-step approach to building a robust OCR system using Vue.js for the frontend and Flask for the backend, leveraging Google Cloud's Vision API and Vertex AI for accurate Urdu text extraction.
+## Motivation
 
-## Introduction
-The Urdu language, with its vast and rich literary history, is preserved in countless historical documents and manuscripts. However, many of these valuable resources are trapped in scanned or image formats, making it difficult to access their content. Traditional OCR systems often struggle to accurately recognize Urdu text due to the complexity of its script and the quality issues in older scans.
+Urdu is one of the most beautiful and complex scripts, but many of its historic and cultural documents remain trapped in image or scanned formats. Existing OCR systems often fail to properly recognize Urdu due to its unique script style. This project is an attempt to create a basic but functional OCR system tailored for Urdu text extraction, using modern cloud technologies.
 
-This project addresses this challenge by creating an advanced OCR system designed specifically for Urdu text extraction. By leveraging Google Cloud Vision API and UTRNet, this system extracts text with high accuracy, digitizing documents for future generations.
+## Features
 
-### Audience
-This guide is designed for developers and data scientists interested in OCR technology, particularly those focusing on Urdu scripts and the integration of advanced AI services.
+- **File Upload**: Upload images or scanned documents (e.g., .jpg, .png, .pdf).
+- **Text Extraction**: Automatically extract text using Google Cloud Vision API.
+- **Real-Time Preview**: See the extracted Urdu text displayed on the webpage.
+- **Firestore Integration**: Save the extracted text in Google Firestore for later use.
 
-### Outcome
-By the end of this project, you will have a fully functional OCR system with a Vue.js frontend for user interactions and a Flask backend for handling text extraction and processing.
+## Technologies Used
 
----
+- **Frontend**: Vue.js
+- **Backend**: Flask (Python)
+- **Cloud Services**:
+  - Google Cloud Vision API (for OCR)
+  - Google Cloud Storage (for storing uploaded files)
+  - Google Cloud Firestore (for saving extracted text)
 
-## Design
+## Deployment:
 
-### High-Level Architecture
-The solution employs a hybrid approach, combining the general text detection capabilities of Google Cloud Vision API with the specialized Urdu text recognition of UTRNet.
+- **Backend**: Google App Engine
+- **Frontend**: Netlify or Vercel
 
-#### Frontend (Vue.js):
-- **User Interface:** A simple and intuitive UI that allows users to upload images or PDFs, view extracted text, and download results.
-- **Components:** File upload, text display, and download options.
+## System Architecture
 
-#### Backend (Flask):
-- **API Endpoints:** Manages file uploads, processes OCR with Google Vision API, and performs post-processing with Vertex AI.
-- **Data Storage:** Utilizes Google Cloud Storage for images and Firestore for text records.
+1. User uploads an image through the Vue.js frontend.
+2. The image is sent to the Flask backend.
+3. The backend:
+   - a) Uploads the image to Google Cloud Storage.
+   - b) Passes the image to the Google Cloud Vision API for OCR.
+   - c) Saves the extracted text to Google Firestore.
+4. The extracted text is returned to the Vue.js frontend and displayed to the user.
 
-#### Hybrid OCR Processing:
-1. **Preprocessing:** Converts PDFs to images and enhances text visibility.
-2. **Initial Text Detection:** Google Vision API detects text regions and layouts.
-3. **Urdu Text Recognition:** UTRNet extracts Urdu text from the detected regions.
-4. **Text Post-Processing:** Combines outputs and applies language-specific corrections.
+## Setup Instructions
 
-### Rationale
-- **Vue.js:** Provides a reactive and user-friendly interface for smooth interactions.
-- **Flask:** Lightweight and flexible backend ideal for integration with Google Cloud services.
-- **Google Vision API:** Efficient general text detection.
-- **UTRNet:** High accuracy for Urdu script recognition.
+### Prerequisites
 
----
+Make sure you have the following installed and set up:
 
-## Prerequisites
-
-### Software
+- Python 3.7+
 - Node.js and npm
-- Vue.js CLI
-- Python 3
-- Flask
-- Google Cloud SDK
+- Google Cloud Account with:
+  - Vision API enabled.
+  - A Cloud Storage bucket created.
+  - A Firestore database set up in Native Mode.
+  - A Google Cloud Service Account Key downloaded as a JSON file.
 
-### Knowledge
-- Basic understanding of Vue.js and Flask
-- Familiarity with Google Cloud services (Vision API, Storage, Firestore)
+### Backend Setup (Flask)
 
----
+1. Clone this repository and navigate to the backend folder:
 
-## Step-by-Step Instructions
+    ```bash
+    git clone https://github.com/your-username/urdu-ocr-system.git
+    cd urdu-ocr-system/urdu-ocr-backend
+    ```
 
-### Frontend Development with Vue.js
-1. **Set Up Vue.js:**
-   ```bash
-   sudo apt-get install nodejs npm 
-   npm install -g @vue/cli 
-   vue create urdu-ocr-frontend 
-   cd urdu-ocr-frontend 
-   npm run serve
-   ```
-2. **Build the UI:**
-   - Create components for file upload, text display, and download options.
+2. Create a virtual environment and install dependencies:
 
-3. **Install Axios for API Requests:**
-   ```bash
-   npm install axios
-   ```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
 
-### Backend Development with Flask
-1. **Set Up Flask App:**
-   ```bash
-   mkdir urdu-ocr-backend
-   cd urdu-ocr-backend
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install Flask google-cloud-vision google-cloud-storage google-cloud-firestore
-   ```
-2. **Develop API Endpoints:**
-   ```python
-   from flask import Flask, request, jsonify
-   from google.cloud import vision, storage, firestore
+3. Add your Google Cloud Service Account Key to the backend folder:
 
-   app = Flask(__name__)
+    - Save the key file as `service_account_key.json`.
+    - Update the Cloud Storage bucket name in `app.py`:
 
-   # Initialize Google Cloud Clients
-   vision_client = vision.ImageAnnotatorClient()
-   storage_client = storage.Client()
-   firestore_client = firestore.Client()
+    ```python
+    bucket_name = 'your-bucket-name'
+    ```
 
-   @app.route('/upload', methods=['POST'])
-   def upload_file():
-       if 'file' not in request.files:
-           return jsonify({'error': 'No file uploaded'}), 400
-       
-       file = request.files['file']
-       bucket = storage_client.bucket('your-bucket-name')
-       blob = bucket.blob(file.filename)
-       blob.upload_from_file(file)
+4. Start the backend server:
 
-       image = vision.Image(source=vision.ImageSource(gcs_image_uri=f'gs://your-bucket-name/{file.filename}'))
-       response = vision_client.text_detection(image=image)
-       text = response.text_annotations[0].description if response.text_annotations else ''
-       
-       doc_ref = firestore_client.collection('documents').add({
-           'filename': file.filename,
-           'text': text
-       })
+    ```bash
+    python app.py
+    ```
 
-       return jsonify({'text': text}), 200
+The backend will run on http://localhost:8080.
 
-   if __name__ == '__main__':
-       app.run(host='0.0.0.0', port=8080)
-   ```
-3. **Testing Locally:**
-   ```bash
-   FLASK_APP=main.py flask run
-   ```
-   Use Postman or similar tools to test the API endpoints.
+### Frontend Setup (Vue.js)
 
-### Implementing Hybrid OCR Model
+1. Navigate to the frontend folder:
 
-#### Preprocessing and Initial Text Detection:
-```python
-from google.cloud import vision, storage
+    ```bash
+    cd ../urdu-ocr-frontend
+    ```
 
-# Detect text regions...
-def detect_text_regions(image_path, bucket_name, blob_name):
-    # Logic for text detection...
-```
+2. Install dependencies:
 
-#### Urdu Text Recognition with UTRNet:
-```python
-import torch
-from torchvision import transforms
+    ```bash
+    npm install
+    ```
 
-# Model logic...
-def recognize_urdu_text(region_image):
-    # Text recognition logic...
-```
+3. Start the development server:
 
-#### Text Post-Processing:
-```python
-def post_process_text(urdu_text, vision_text):
-    # Post-processing logic...
-```
+    ```bash
+    npm run serve
+    ```
 
----
+The frontend will run on http://localhost:8080.
+
+4. Update the API endpoint in `FileUpload.vue`:
+
+    ```javascript
+    const response = await axios.post('http://localhost:8080/upload', formData);
+    ```
+
+## How to Use
+
+1. Start both the backend and frontend as described above.
+2. Open the frontend in your browser (http://localhost:8080).
+3. Upload an Urdu document or image (e.g., .jpg, .png, or .pdf).
+4. Wait for the extracted text to appear on the page.
+5. Copy the extracted text or save it for later use.
 
 ## Deployment
 
-1. **Code in VS Code:** Write and organize your Python scripts, manage the environment, and execute the code.
-2. **Google Cloud Console:** Set up services, manage billing, and view logs.
-3. **Execution:** Test with your dataset and optimize the workflow.
+### Backend Deployment (Google App Engine)
 
----
+1. Navigate to the `urdu-ocr-backend` folder:
 
-## Result / Demo
-The final system provides a user-friendly interface that allows users to upload images or PDFs, extract Urdu text, and download results.
+    ```bash
+    cd urdu-ocr-backend
+    ```
 
-- **GitHub Repository:** [Project Saadhna OCR](https://github.com/Pathan-Mohammad-Rashid/Project-Saadhna-Advanced-OCR-for-Scanned-Documents.git)
-- **Demo Link:** [Demo](https://drive.google.com/drive/folders/1kh4W1A63TYMnNvxEvH-OKE6DK9Zbf_HF?usp=sharing)
+2. Deploy the Flask app to Google App Engine:
 
----
+    ```bash
+    gcloud app deploy
+    ```
 
-## What's Next?
-Explore related topics and projects:
-- Advanced OCR Techniques
-- Integrating AI with Cloud Services
-- Improving Text Recognition Accuracy
+   Note the deployed URL (e.g., https://<your-project-id>.appspot.com).
 
----
+3. Update the API endpoint in the frontend to use this URL:
 
-# Tags
-#OCRTechnology #UrduLiterature #DigitalPreservation #VueJS #Flask #GoogleCloud #VisionAPI #VertexAI #ArtificialIntelligence #MachineLearning #CloudComputing #UrduHeritage
+    ```javascript
+    const response = await axios.post('https://<your-project-id>.appspot.com/upload', formData);
+    ```
+
+### Frontend Deployment (Netlify or Vercel)
+
+1. Navigate to the `urdu-ocr-frontend` folder:
+
+    ```bash
+    cd ../urdu-ocr-frontend
+    ```
+
+2. Build the Vue.js app:
+
+    ```bash
+    npm run build
+    ```
+
+3. Deploy the `dist/` folder to:
+   - **Netlify**: Drag and drop the `dist/` folder into the Netlify dashboard.
+   - **Vercel**: Use the Vercel CLI or dashboard to deploy.
+
+## Screenshots
+
+- **File Upload UI**
+![Screenshot 2024-07-29 212858](https://github.com/user-attachments/assets/6e925105-d505-48f0-9078-19af83e89272)
+
+## Future Improvements
+
+- **Better OCR Model**: Integrate models like UTRNet or other custom-trained Urdu OCR models for higher accuracy.
+- **Batch Processing**: Allow multiple file uploads at once.
+- **Output Formats**: Provide an option to download the extracted text in PDF, Word, or Text formats.
+- **Improved UI**: Add loading indicators and error messages for a better user experience.
+
+## Contributors
+
+This project was developed as part of a personal learning initiative. Contributions and suggestions are always welcome!
+
+## License
+
+This project is licensed under the MIT License. Feel free to use, modify, or share this project for your own needs.
