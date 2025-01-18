@@ -1,52 +1,34 @@
 <template>
     <div>
-      <h2>Upload File</h2>
-      <input type="file" @change="onFileChange" />
-      <button @click="uploadFile" :disabled="!selectedFile">Upload</button>
+        <h1>Urdu OCR System</h1>
+        <input type="file" @change="uploadFile" />
+        <p v-if="text"><strong>Extracted Text:</strong></p>
+        <pre>{{ text }}</pre>
     </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
     data() {
-      return {
-        selectedFile: null,
-      };
+        return {
+            text: '' // Extracted text from the backend
+        };
     },
     methods: {
-      onFileChange(event) {
-        this.selectedFile = event.target.files[0];
-      },
-      async uploadFile() {
-        if (!this.selectedFile) return;
-        const formData = new FormData();
-        formData.append("file", this.selectedFile);
-  
-        try {
-          const response = await axios.post(
-            "http://localhost:5000/upload",
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
+        async uploadFile(event) {
+            const file = event.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await axios.post('http://localhost:8080/upload', formData);
+                this.text = response.data.text;
+            } catch (error) {
+                console.error('Error uploading file:', error);
             }
-          );
-          this.$emit("fileUploaded", response.data.text);
-        } catch (error) {
-          console.error("Error uploading file:", error);
         }
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  /* Add some styling */
-  button {
-    margin-top: 10px;
-  }
-  </style>
-  
+    }
+};
+</script>
